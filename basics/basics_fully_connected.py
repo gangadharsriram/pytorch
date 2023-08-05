@@ -6,9 +6,13 @@ from torchvision.transforms import ToTensor
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 from torch.optim import Adam
-import time 
-
+from datetime import datetime
+import os
 from torch.utils.tensorboard import SummaryWriter
+
+os.makedirs(os.path.join(os.getcwd(),"save"), exist_ok=True)
+
+timestamp=datetime.now().strftime("%Y%m%d_%H_%M_%S")
 
 train_raw=datasets.MNIST(root="datas",train=True,download=True,transform=ToTensor())
 val_raw=datasets.MNIST(root="datas",train=False,download=True,transform=ToTensor())
@@ -87,8 +91,8 @@ def train_one_epoch():
     return avg_loss,train_accuracy
     
 epoch=30
+best_less=1_000_000
 
-start=time.time()
 for epoch in range(epoch):
     print('EPOCH {}:'.format(epoch + 1))
 
@@ -128,4 +132,10 @@ for epoch in range(epoch):
     board.add_scalar('Validation Accuracy',v_accuracy,epoch+ 1)
     board.close()
     
+    
+    if val_avg_loss < best_less:
+        best_vloss= val_avg_loss
+        model_path="model_{}_{}".format(epoch+1,timestamp)
+        torch.save(model.state_dict(),os.path.join(os.getcwd(),"save",model_path))
+        
     
